@@ -76,19 +76,28 @@ function tokenize(inputCode: string) {
 
 }
 
-const result = tokenize('1+---1')
+const result = tokenize('1+1+1+1')
 console.log(result);
 
 const mainExpression = ['EX', 'EOF']
 
 
+// const grammar = [
+//   ['EX', 'number'],
+//   ['EX', 'EX ((operator1|operator2) EX)*'],
+//   ['EX', 'operator1 EX'],
+// ]
+
+
 const ll1Grammars: Array<[string, string[]]> = [
   ['number:EX', 'number EXC'],
+
   ['operator1:EX', 'operator1 EX'],
+  
   ['operator1:EXC', 'operator1 EX EXC'],
   ['operator2:EXC', 'operator2 EX EXC'],
-  ['(:EX', '( EX ) EXC'],
-  ['):EXC',''],
+  // ['(:EX', '( EX ) EXC'],
+  // ['):EXC',''],
   ['EOF:EXC', ''],
 
 ].map(grammar => {
@@ -124,6 +133,7 @@ function parse(mainExpression,tokens: token[]) {
     return {
       type: 'NODE',
       need: grammarTable[wordType + ':' + nodeType],
+      id:wordType + ':' + nodeType,
       node: [],
       nptr: 0
     };
@@ -141,6 +151,7 @@ function parse(mainExpression,tokens: token[]) {
     if (nowNodeType == token.type) {
       tree.node.push({
         type: 'WORD',
+        id:token.type,
         token: token
       });
       // increment the pointer
@@ -201,4 +212,20 @@ function parse(mainExpression,tokens: token[]) {
 
 const ast = parse(mainExpression,trimedTokens)
 
-console.log(ast);
+
+
+function traverseAstToString(ast, tab){
+  let str = ``
+  if(ast.type === 'NODE'){
+    // console.log(tab + ast.id)
+    str += '\n' + tab + ast.id
+    for(let i = 0; i < ast.node.length; i++){
+      str += traverseAstToString(ast.node[i], tab + '\t')
+    }
+  }else if(ast.type === 'WORD'){
+    str += (tab + ast.id + ':' + ast.token.value)
+  }
+  return str
+}
+
+console.log(traverseAstToString(ast, ''))
