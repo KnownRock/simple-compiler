@@ -30,7 +30,7 @@ const result = tokenize(expDecTokenTypes,'(EX)')
 console.log(result);
 
 const preGrammer = [
-  ['MAIN', 'EX', 'EOF'],
+  ['MAIN', 'EX EOF'],
   ['EX', 'identifier EXC'],
   ['EX', 'lb EX rb EXC'],
 
@@ -64,27 +64,44 @@ const ll1Grammars = [
 
 function toLl1Grammar(preGrammer){
   const ll1Grammar = []
-  const firstDict = {}
+  const firstDict:{
+    [key: string]: Set<string>
+  } = {}
+  const isExpDict:{
+    [key: string]: boolean
+  } = {}
   preGrammer.forEach(item => {
     const [key, value] = item
+    isExpDict[key] = true
     // init firstDict
-    firstDict[key] = firstDict[key] || []
+    firstDict[key] = firstDict[key] ?? new Set()
     if(value.length > 0) {
-      firstDict[key].push(value[0])
+      firstDict[key].add(value[0])
     }
+  })
+  
+  // replace all exp to extract token
+  function fillFirstDict(key, keysDict = {}){
+    if(keysDict[key]) return
+    keysDict[key] = true
+    if(firstDict[key]){
+      firstDict[key].forEach(el => {
+        fillFirstDict(el, keysDict)
+        if(firstDict[el]){
+          firstDict[key].delete(el)
+          Array.from(firstDict[el]).forEach(el => {
+            firstDict[key].add(el)
+          })
+        }
+      })
+    }
+  }
+
+  preGrammer.forEach(item => {
+    const [key, value] = item
+    fillFirstDict(key)
   })
   console.log(firstDict);
-  
-
-  // which grammar can be emtpy
-  const nullableDict = {}
-  preGrammer.forEach(item => {
-    const [key, value] = item
-    if(value.length === 0) {
-      nullableDict[key] = true
-    }
-  })
-
   // every production fllows add thier parent
   // const lastDict = {}
   // preGrammer.forEach(item=>{
@@ -101,15 +118,19 @@ function toLl1Grammar(preGrammer){
   // console.log(lastDict);
   
   // reverse type
-  const lastDict = {}
+  const lastDict:{
+    [key: string]: Set<string>
+  } = {}
   preGrammer.forEach(item => {
     const [key, value] = item
     if(value.length > 0) {
-      const lastItem = value[value.length - 1]
-      if(lastItem !== key){
-        lastDict[lastItem] = lastDict[lastItem] || new Set()
+      let lastItem = value[value.length - 1]
+      if(key === 'MAIN' || !isExpDict[lastItem]) return 
+      lastDict[lastItem] = lastDict[lastItem] || new Set()
+      if(lastItem !== key ){
         lastDict[lastItem].add(key)
       }
+
     }
   })
   console.log(lastDict);
@@ -133,24 +154,80 @@ function toLl1Grammar(preGrammer){
           }
         }
       })
-
-      // then collect from it parent
-      // value.forEach((el,index) => {
-      //   if(firstDict[el]){
-      //     const parent = followDict[key]
-      //     if(parent){
-      //       Array.from(parent).forEach(item => {
-      //         followDict[el].add(item)
-      //       })
-      //     }
-      //   }
-      // })
     }
-  })    
-        
+  })  
+  
+  // type Group = Set<string>
+  // const groups: Array<Group> = []
+  // const groupsIndexDict:{
+  //   [key: string]:Group
+  // } = {}
 
+  // function travelGraph(key, travedDict){
+  //   if(groupsIndexDict[key]) return
+  //   const group = new Set()
+  //   // groupsIndexDict[key] = groupsIndexDict[key] ?? new Set()
+  // }
+
+  // fill lastDict by followDict 
+  function fillLastDict(key, travedDict = {}){
+    if(travedDict[key] || !isExpDict[key]) return
+    travedDict[key] = true
+    if(lastDict[key]){
+      lastDict[key].forEach(el => {
+        fillLastDict(el, travedDict)
+        if(followDict[el]){
+          lastDict[key].delete(el)
+          Array.from(followDict[el]).forEach(el => {
+            lastDict[key].add(el)
+            followDict[key].add(el)
+          })
+        }
+      })
+      
+    }
+  }
+  
+
+
+  // function fillFollowDict(key, keysDict = {}){
+  //   const set = lastDict[key]
+  //   if(set && !keysDict[key]){
+  //     keysDict[key] = true
+  //     const parents:string[] = Array.from(set)
+  //     parents.forEach(parent => {
+  //       if(keysDict[parent]) return
+  //       fillFollowDict(parent, keysDict)
+
+  //       const followSet = followDict[parent]
+  //       if(followSet){
+  //         followSet.forEach(follow => {
+  //           followDict[key] = followDict[key] || new Set()
+  //           followDict[key].add(follow)
+  //         })
+  //       }
+  //     })
+  //   }
+  // }
+
+  // which grammar can be emtpy
+  const nullableDict = {}
+  preGrammer.forEach(item => {
+    const [key, value] = item
+    if(value.length === 0) {
+      nullableDict[key] = true
+    }
+  })
+  console.log(nullableDict);
+    
+  Object.keys(nullableDict).forEach(key => {
+    fillLastDict(key)
+  })
 
   console.log(followDict);
+  console.log(lastDict);
+  
+  
   
 
   // preGrammer.forEach(rule => {
