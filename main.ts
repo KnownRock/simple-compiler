@@ -102,20 +102,7 @@ function toLl1Grammar(preGrammer){
     fillFirstDict(key)
   })
   console.log(firstDict);
-  // every production fllows add thier parent
-  // const lastDict = {}
-  // preGrammer.forEach(item=>{
-  //   const [key, value] = item
-  //   lastDict[key] = lastDict[key] ?? new Set()
-  //   if(value.length > 0) {
-  //     const lastItem = value[value.length - 1]
-  //     // maybe useless
-  //     if(lastItem !== key) {
-  //       lastDict[key].add(key)
-  //     }
-  //   }
-  // })
-  // console.log(lastDict);
+
   
   // reverse type
   const lastDict:{
@@ -192,6 +179,9 @@ function toLl1Grammar(preGrammer){
 
   console.log(followDict);
   console.log(lastDict);
+
+
+
   
 }
 
