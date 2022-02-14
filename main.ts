@@ -17,38 +17,28 @@ const expDecTokenTypes: Array<[string, RegExp]> = [
 // EX ((operator1|operator2) EX)*
 // ((operator1|operator2|operator2) EX)*
 
-const tokens = tokenize(expDecTokenTypes, '*+')
+const tokens = tokenize(expDecTokenTypes, '((A)|B)')
 console.log(tokens);
 
 const preGrammer = [
   ['MAIN', 'EX EOF'],
 
-  // ['EX', 'A B C'],
-  // ['A', ''],
-  // ['B', ''],
-  // ['C', ''],
-  // ['A', 'a'],
-  // ['B', 'b'],
-  // ['C', 'c'],
+  ['EX', 'identifier EXO EXC'],
 
-
-  ['EX', 'identifier OPO EXC'],
-
-  ['OPO', ''],
-  ['OPO', 'op'],
-
-  // bug in here , that or:EXO rule is not correct 
-  // need to handle by single rule?
+  // ((A)|B)
   ['EX', 'lb EX EXB rb EXO EXC'],
 
+  // (A)+ 
   ['EXO', 'zm'],
   ['EXO', 'om'],
+  ['EXO', 'op'],
   ['EXO', ''],
 
+  // (A|B)
   ['EXB', ''],
   ['EXB', 'or EX EXB'],
 
-
+  // A B
   ['EXC', ''],
   ['EXC', 'sp EX'],
 
@@ -118,7 +108,7 @@ function toLl1Grammar(preGrammer, isLog = false) {
   });
 
 
-  console.log(ll1Grammars);
+  if(isLog) console.log(ll1Grammars);
 
   // which grammar can be emtpy
   const nullableDict: {
@@ -163,7 +153,7 @@ function toLl1Grammar(preGrammer, isLog = false) {
     }
   });
 
-  console.log(followDict);
+  if(isLog) console.log(followDict);
   // // fill lastDict by followDict 
   function fillFollowDict(key, travedDict = {}) {
     if (travedDict[key] || !isExpDict[key]) return;
@@ -203,31 +193,7 @@ function toLl1Grammar(preGrammer, isLog = false) {
   Object.keys(followDict).forEach(key => {
     fillFollowDict(key);
   });
-  console.log(followDict);
-  // // which grammar can be emtpy
-  // const nullableDict:{
-  //   [key: string]: boolean;
-  // } = {};
-  // preGrammer.forEach(item => {
-  //   const [key, value] = item;
-  //   if (value.length === 0) {
-  //     nullableDict[key] = true;
-  //   }
-  // });
-  // console.log(nullableDict);
-
-  // Object.keys(nullableDict).forEach(key => {
-  //   fillLastDict(key);
-  // });
-
-  // Object.keys(nullableDict).forEach(key => {
-  //   fillFollowDict(key);
-  // });
-
-
-
-  // console.log(followDict);
-  // console.log(lastDict);
+  if(isLog) console.log(followDict);
 
   Object.keys(nullableDict).forEach(key => {
     const follow = followDict[key];
@@ -245,7 +211,7 @@ function toLl1Grammar(preGrammer, isLog = false) {
 
 
 
-const ll1 = toLl1Grammar(preGrammer, true);
+const ll1 = toLl1Grammar(preGrammer, false);
 
 console.log(ll1.map(([a, b]) => [a, b.join(' ')]));
 
