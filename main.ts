@@ -11,18 +11,34 @@ const expDecTokenTypes: Array<[string, RegExp]> = [
   ['lb', /^\(/],
   ['rb', /^\)/],
   ['sp', /^ +/],
+  ['op', /^\?/],
 ]
 
 // EX ((operator1|operator2) EX)*
+// ((operator1|operator2|operator2) EX)*
 
-
-const result = tokenize(expDecTokenTypes,'(EX)')
-console.log(result);
+const tokens = tokenize(expDecTokenTypes, '*+')
+console.log(tokens);
 
 const preGrammer = [
   ['MAIN', 'EX EOF'],
-  ['EX', 'identifier EXC'],
-  // little bug in here , that or:EXO rule is not correct
+
+  // ['EX', 'A B C'],
+  // ['A', ''],
+  // ['B', ''],
+  // ['C', ''],
+  // ['A', 'a'],
+  // ['B', 'b'],
+  // ['C', 'c'],
+
+
+  ['EX', 'identifier OPO EXC'],
+
+  ['OPO', ''],
+  ['OPO', 'op'],
+
+  // bug in here , that or:EXO rule is not correct 
+  // need to handle by single rule?
   ['EX', 'lb EX EXB rb EXO EXC'],
 
   ['EXO', 'zm'],
@@ -30,19 +46,21 @@ const preGrammer = [
   ['EXO', ''],
 
   ['EXB', ''],
-  ['EXB', 'or identifier'],
+  ['EXB', 'or EX EXB'],
 
- 
+
   ['EXC', ''],
-  ['EXC', 'sp identifier EXC'],
+  ['EXC', 'sp EX'],
+
+
 ].map(grammar => {
   const [name, productions] = grammar
-  if(productions === '') return [name, []]
+  if (productions === '') return [name, []]
   const productionsArray = productions.split(' ')
   return [name, productionsArray]
 })
-function toLl1Grammar(preGrammer , isLog = false) {
-  const ll1Grammars:Array<[string, string[]]> = [];
+function toLl1Grammar(preGrammer, isLog = false) {
+  const ll1Grammars: Array<[string, string[]]> = [];
   const firstDict: {
     [key: string]: Set<string>;
   } = {};
@@ -84,7 +102,7 @@ function toLl1Grammar(preGrammer , isLog = false) {
   });
   console.log(firstDict);
 
-  preGrammer.forEach(item => { 
+  preGrammer.forEach(item => {
     const [key, value] = item;
     const firstItem = value[0];
 
@@ -102,94 +120,8 @@ function toLl1Grammar(preGrammer , isLog = false) {
 
   console.log(ll1Grammars);
 
-
-  // reverse type
-  const lastDict: {
-    [key: string]: Set<string>;
-  } = {};
-  preGrammer.forEach(item => {
-    const [key, value] = item;
-    if (value.length > 0) {
-      let lastItem = value[value.length - 1];
-      if (key === 'MAIN' || !isExpDict[lastItem])
-        return;
-      lastDict[lastItem] = lastDict[lastItem] || new Set();
-      if (lastItem !== key) {
-        lastDict[lastItem].add(key);
-      }
-
-    }
-  });
-  console.log(lastDict);
-
-
-  const followDict: {
-    [key: string]: Set<string>;
-  } = {};
-  preGrammer.forEach(item => {
-    const [key, value] = item;
-    // followDict[key] = followDict[key] || []
-    if (value.length > 0) {
-      // first collect all the follow of the production
-      value.forEach((el, index) => {
-        // is in custom express
-        if (firstDict[el]) {
-          followDict[el] = followDict[el] || new Set();
-          const nextItem = value[index + 1];
-          if (nextItem) {
-            followDict[el].add(nextItem);
-          }
-        }
-      });
-    }
-  });
-
-  // fill lastDict by followDict 
-  function fillLastDict(key, travedDict = {}) {
-    if (travedDict[key] || !isExpDict[key])
-      return;
-    travedDict[key] = true;
-    if (lastDict[key]) {
-      lastDict[key].forEach(el => {
-        fillLastDict(el, travedDict);
-        if (followDict[el]) {
-          lastDict[key].delete(el);
-          Array.from(followDict[el]).forEach(el => {
-            lastDict[key].add(el);
-            followDict[key].add(el);
-          });
-        }
-      });
-
-    }
-  }
-  console.log(followDict);
-  // fill lastDict by followDict 
-  function fillFollowDict(key, travedDict = {}) {
-    if (travedDict[key] || !isExpDict[key]) return;
-    travedDict[key] = true;
-    if (followDict[key]) {
-      followDict[key].forEach(el => {
-        if (isExpDict[el]) {
-          fillFollowDict(el, travedDict);
-
-        
-          followDict[key].delete(el);
-          Array.from(followDict[el]).forEach(el => {
-            followDict[key].add(el);
-          });
-
-          Array.from(firstDict[el]).forEach(el => {
-            followDict[key].add(el);
-          });
-        }
-      });
-
-    }
-  }
-
   // which grammar can be emtpy
-  const nullableDict:{
+  const nullableDict: {
     [key: string]: boolean;
   } = {};
   preGrammer.forEach(item => {
@@ -200,33 +132,123 @@ function toLl1Grammar(preGrammer , isLog = false) {
   });
   console.log(nullableDict);
 
-  Object.keys(nullableDict).forEach(key => {
-    fillLastDict(key);
+
+  const followDict: {
+    [key: string]: Set<string>;
+  } = {};
+  const fathersDict: {
+    [key: string]: Set<string>;
+  } = {}
+  preGrammer.forEach(item => {
+    const [key, value] = item;
+    // followDict[key] = followDict[key] || []
+    if (value.length > 0) {
+      // first collect all the follow of the production
+      value.forEach((el, index) => {
+        // is in custom express
+        if (firstDict[el]) {
+          followDict[el] = followDict[el] || new Set();
+          const nextItem = value[index + 1];
+
+          // if(nullableDict[nextItem]) return
+
+          if (nextItem) {
+            followDict[el].add(nextItem);
+          } else {
+            fathersDict[el] = fathersDict[el] || new Set();
+            fathersDict[el].add(key);
+          }
+        }
+      });
+    }
   });
-
-  Object.keys(nullableDict).forEach(key => {
-    fillFollowDict(key);
-  });
-
-
 
   console.log(followDict);
-  console.log(lastDict);
+  // // fill lastDict by followDict 
+  function fillFollowDict(key, travedDict = {}) {
+    if (travedDict[key] || !isExpDict[key]) return;
+    travedDict[key] = true;
+    if (followDict[key]) {
+      followDict[key].forEach(el => {
+        if (isExpDict[el]) {
+          fillFollowDict(el, travedDict);
+
+          followDict[key].delete(el);
+
+          if (fathersDict[el]) {
+            Array.from(fathersDict[el]).forEach(ell => {
+              Array.from(followDict[ell]).forEach(elll => {
+                followDict[el].add(elll);
+              })
+            });
+          }
+          // if next item is nullable, add next item's follow to this item's follow
+          if (nullableDict[el]) {
+            Array.from(followDict[el]).forEach(el => {
+              followDict[key].add(el);
+            });
+          }
+
+
+          Array.from(firstDict[el]).forEach(el => {
+            followDict[key].add(el);
+          });
+
+        }
+      });
+
+    }
+  }
+
+  Object.keys(followDict).forEach(key => {
+    fillFollowDict(key);
+  });
+  console.log(followDict);
+  // // which grammar can be emtpy
+  // const nullableDict:{
+  //   [key: string]: boolean;
+  // } = {};
+  // preGrammer.forEach(item => {
+  //   const [key, value] = item;
+  //   if (value.length === 0) {
+  //     nullableDict[key] = true;
+  //   }
+  // });
+  // console.log(nullableDict);
+
+  // Object.keys(nullableDict).forEach(key => {
+  //   fillLastDict(key);
+  // });
+
+  // Object.keys(nullableDict).forEach(key => {
+  //   fillFollowDict(key);
+  // });
+
+
+
+  // console.log(followDict);
+  // console.log(lastDict);
 
   Object.keys(nullableDict).forEach(key => {
     const follow = followDict[key];
     if (follow) {
       Array.from(follow).forEach(el => {
-        ll1Grammars.push([`${el}:${key}`, []]);
+        if (!isExpDict[el]) {
+          ll1Grammars.push([`${el}:${key}`, []]);
+        }
       });
     }
   });
 
-  return ll1Grammars;
+  return ll1Grammars
 }
 
 
 
 const ll1 = toLl1Grammar(preGrammer, true);
 
-console.log(ll1.map(([a,b])=>[a,b.join(' ')]));
+console.log(ll1.map(([a, b]) => [a, b.join(' ')]));
+
+
+const ast = parse(['MAIN'], ll1, tokens);
+console.log(traverseAstToString(ast));
