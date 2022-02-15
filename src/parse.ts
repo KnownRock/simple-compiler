@@ -12,9 +12,14 @@ function parse(mainExpression, ll1Grammars,tokens: token[]) {
     [key: string]: Array<string>
   } = {}
 
+  const handlerTable: {
+    [key: string]: Function
+  } = {}
+
   ll1Grammars.forEach(grammar => {
-    const [key, value] = grammar
+    const [key, value, handler] = grammar
     grammarTable[key] = value
+    handlerTable[key] = handler
   })
 
 
@@ -26,8 +31,9 @@ function parse(mainExpression, ll1Grammars,tokens: token[]) {
     return {
       type: 'NODE',
       need: grammarTable[wordType + ':' + nodeType],
+      handler: handlerTable[wordType + ':' + nodeType],
       id:wordType + ':' + nodeType,
-      node: [],
+      nodes: [],
       nptr: 0
     };
   }
@@ -42,7 +48,7 @@ function parse(mainExpression, ll1Grammars,tokens: token[]) {
     var nowNodeType = tree.need[tree.nptr];
     // if the word is not the same type, fill the word to the ast
     if (nowNodeType == token.type) {
-      tree.node.push({
+      tree.nodes.push({
         type: 'WORD',
         id:token.type,
         token: token
@@ -53,7 +59,7 @@ function parse(mainExpression, ll1Grammars,tokens: token[]) {
       // if the word dont have the same type, get the node from the grammar 
     } else {
       // get the child node
-      var child = tree.node[tree.nptr];
+      var child = tree.nodes[tree.nptr];
       // if the child node is not exist, create it from the grammar
       if (child == null) {
         child = getNode(tree.need[tree.nptr], token.type);
@@ -64,7 +70,7 @@ function parse(mainExpression, ll1Grammars,tokens: token[]) {
             token: token
           }
         }
-        tree.node.push(child);
+        tree.nodes.push(child);
       }
 
       // add word to the child node, if the child node is full, add to next node
@@ -81,9 +87,9 @@ function parse(mainExpression, ll1Grammars,tokens: token[]) {
   function resolveExpress() {
     var express = {
       type: 'NODE',
-      need: mainExpression,
+      need: [mainExpression],
       id:'root',
-      node: [],
+      nodes: [],
       nptr: 0,
     };
 
@@ -92,7 +98,6 @@ function parse(mainExpression, ll1Grammars,tokens: token[]) {
       if (!addToken(express, tokens[i])) {
         throw {
           type: '',
-          // pos: markedWords[i].pos,
           word: tokens[i]
         }
       }
@@ -100,8 +105,8 @@ function parse(mainExpression, ll1Grammars,tokens: token[]) {
     return express;
   }
 
-
-  return resolveExpress();
+  // remove processed words
+  return resolveExpress().nodes[0];
 }
 
 export default parse;
