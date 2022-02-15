@@ -65,9 +65,7 @@ export default function processGrammar(grammers) {
     }
   });
 
-  return {
-    procssedGrammars
-  };
+  return procssedGrammars
 
 
 }

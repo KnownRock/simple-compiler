@@ -65,10 +65,9 @@ const grammers = [
 
 
 
-const { procssedGrammars: p } = processGrammar(grammers)
+const procssedGrammars = processGrammar(grammers)
 
-
-const ll1 = toLl1Grammar(p, false);
+const ll1 = toLl1Grammar(procssedGrammars, false);
 
 const ast = parse('MAIN', ll1, tokens);
 
