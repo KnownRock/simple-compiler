@@ -5,26 +5,24 @@ type token = {
   column: number
 }
 
-
-function tokenize(tokenTypes,inputCode: string) {
+function tokenize(tokenTypes, inputCode: string) {
   let code = inputCode
-  let tokens: token[] = []
+  const tokens: token[] = []
   let line = 1
   let column = 0
 
   // traverse through the code
   while (code.length > 0) {
-
     // find the first token
-    let token: token = {
+    const token: token = {
       type: '',
       value: '',
-      line: line,
-      column: column
+      line,
+      column,
     }
 
     // find the token type
-    tokenTypes.forEach(type => {
+    tokenTypes.forEach((type) => {
       const match = code.match(type[1])
 
       // get the longest match
@@ -38,7 +36,7 @@ function tokenize(tokenTypes,inputCode: string) {
 
     // if no token found, throw error
     if (token.type === '') {
-      throw new Error('Unexpected token: ' + code[0])
+      throw new Error(`Unexpected token: ${code[0]}`)
     }
 
     // add the token to the list
@@ -56,12 +54,11 @@ function tokenize(tokenTypes,inputCode: string) {
   tokens.push({
     type: 'EOF',
     value: 'EOF',
-    line: line,
-    column: column
+    line,
+    column,
   })
 
   return tokens
-
 }
 
 export default tokenize
