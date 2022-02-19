@@ -1,4 +1,4 @@
-module.exports = {
+export default {
     "env": {
         "browser": true,
         "es2021": true
@@ -22,6 +22,8 @@ module.exports = {
         "semi": ['error', 'never'],
         'linebreak-style': ['off', 'unix'],
         '@typescript-eslint/semi': ['error', 'never'],
-        quotes: ['error', 'single', { allowTemplateLiterals: true }],
+        "quotes": ['error', 'single', { allowTemplateLiterals: true }],
+        "no-console": "off",
+        "no-plusplus": "off",
     }
 };
