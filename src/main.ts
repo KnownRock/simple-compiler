@@ -4,7 +4,7 @@ import traverseAstToString from './traverseAstToString'
 import toLl1Grammar from './toLl1Grammar'
 import processGrammar from './processGrammar'
 
-const expDecTokenTypes: Array<[string, RegExp]> = [
+const expDecTokenTypes: TokenType[] = [
   ['identifier', /^[a-zA-Z][a-zA-Z0-9_]*/],
   ['or', /^\|/],
   ['zm', /^\*/],
@@ -26,7 +26,7 @@ const expDecTokenTypes: Array<[string, RegExp]> = [
 const tokens = tokenize(expDecTokenTypes, 'a a')
 console.log(tokens)
 
-const grammers = [
+const grammers: Grammar[] = [
   ['MAIN', 'EX EOF'],
 
   // A+ B
@@ -61,17 +61,17 @@ const procssedGrammars = processGrammar(grammers)
 
 const ll1 = toLl1Grammar(procssedGrammars)
 
-console.log(ll1)
+// console.log(ll1)
 
-const ast = parse('MAIN', ll1, tokens)
+const ast1 = parse('MAIN', ll1, tokens)
 
-console.log(ast)
+// console.log(ast1)
 
-function traverse(ast) {
+function traverse(ast: AstNode): AstNode {
   if (ast.type === 'NODE') {
     if (ast.handler) return ast.handler(ast, traverse)
 
-    const nodes = []
+    const nodes:AstNode[] = []
 
     ast.nodes.forEach((node) => {
       if (node.type === 'NODE') {
@@ -82,14 +82,13 @@ function traverse(ast) {
     })
 
     return ({
-      type: ast.type,
-      id: ast.id,
+      ...ast,
       nodes,
     })
   }
   return ast
 }
 
-const a = traverse(ast)
+const a = traverse(ast1)
 
 console.log(traverseAstToString(a))

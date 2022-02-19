@@ -1,5 +1,5 @@
-export default function toLl1Grammar(preGrammer, isLog = false) {
-  const ll1Grammars: Array<[string, string[], Function?]> = []
+export default function toLl1Grammar(preGrammer:Grammar[], isLog = false) {
+  const ll1Grammars: Ll1Grammar[] = []
 
   // which grammar can be emtpy
   const nullableDict: {
@@ -38,21 +38,24 @@ export default function toLl1Grammar(preGrammer, isLog = false) {
           firstDict[key].add(exp)
           return false
         }
+        return true
       })
     }
   })
 
   // replace all exp to extract token
-  function fillFirstDict(key, keysDict = {}) {
+  function fillFirstDict(key:string, keysDict:{ [key: string]: boolean } = {}) {
     if (keysDict[key]) { return }
-    keysDict[key] = true
     if (firstDict[key]) {
       firstDict[key].forEach((el) => {
-        fillFirstDict(el, keysDict)
+        fillFirstDict(el, {
+          ...keysDict,
+          [key]: true,
+        })
         if (firstDict[el]) {
           firstDict[key].delete(el)
-          Array.from(firstDict[el]).forEach((el) => {
-            firstDict[key].add(el)
+          Array.from(firstDict[el]).forEach((ell) => {
+            firstDict[key].add(ell)
           })
         }
       })
@@ -60,7 +63,7 @@ export default function toLl1Grammar(preGrammer, isLog = false) {
   }
 
   preGrammer.forEach((item) => {
-    const [key, value] = item
+    const [key] = item
     fillFirstDict(key)
   })
   // console.log(firstDict);
@@ -115,33 +118,36 @@ export default function toLl1Grammar(preGrammer, isLog = false) {
   if (isLog) { console.log(fathersDict) }
 
   // // fill lastDict by followDict
-  function fillFollowDict(key, travedDict = {}) {
+  function fillFollowDict(key:string, travedDict:{ [key: string]: boolean } = {}) {
     if (travedDict[key] || !isExpDict[key]) { return }
-    travedDict[key] = true
     if (followDict[key]) {
       followDict[key].forEach((el) => {
         if (isExpDict[el]) {
-          fillFollowDict(el, travedDict)
+          fillFollowDict(el, {
+            ...travedDict,
+            [key]: true,
+          })
 
           followDict[key].delete(el)
           // if next item is nullable, add next item's follow to this item's follow
           if (nullableDict[el]) {
-            Array.from(followDict[el]).forEach((el) => {
-              followDict[key].add(el)
+            Array.from(followDict[el]).forEach((ell) => {
+              followDict[key].add(ell)
             })
           }
 
-          Array.from(firstDict[el]).forEach((el) => {
-            followDict[key].add(el)
+          Array.from(firstDict[el]).forEach((ell) => {
+            followDict[key].add(ell)
           })
         }
       })
-
-      fathersDict[key] && fathersDict[key].forEach((el) => {
-        Array.from(followDict[el]).forEach((ell) => {
-          followDict[key].add(ell)
+      if (fathersDict[key]) {
+        fathersDict[key].forEach((el) => {
+          Array.from(followDict[el]).forEach((ell) => {
+            followDict[key].add(ell)
+          })
         })
-      })
+      }
     }
   }
 

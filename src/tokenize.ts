@@ -1,20 +1,13 @@
-type token = {
-  type: string,
-  value: string,
-  line: number,
-  column: number
-}
-
-function tokenize(tokenTypes, inputCode: string) {
+function tokenize(tokenTypes: TokenType[], inputCode: string) {
   let code = inputCode
-  const tokens: token[] = []
+  const tokens: Token[] = []
   let line = 1
   let column = 0
 
   // traverse through the code
   while (code.length > 0) {
     // find the first token
-    const token: token = {
+    const token: Token = {
       type: '',
       value: '',
       line,
@@ -22,13 +15,16 @@ function tokenize(tokenTypes, inputCode: string) {
     }
 
     // find the token type
-    tokenTypes.forEach((type) => {
-      const match = code.match(type[1])
+    // eslint-disable-next-line @typescript-eslint/no-loop-func
+    tokenTypes.forEach(([type, re]) => {
+      const match = code.match(re)
 
       // get the longest match
       if (match && match[0].length > token.value.length) {
-        token.type = type[0]
-        token.value = match[0]
+        const [tokenValue] = match
+
+        token.type = type
+        token.value = tokenValue
         code = code.substring(match[0].length)
         column += match[0].length
       }

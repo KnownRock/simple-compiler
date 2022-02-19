@@ -1,4 +1,4 @@
-function traverseAstToString(ast, tab = '') {
+function traverseAstToString(ast:AstNode, tab = '') {
   let str = ''
   if (ast.type === 'NODE') {
     // console.log(tab + ast.id)
@@ -7,7 +7,7 @@ function traverseAstToString(ast, tab = '') {
       str += `\n${traverseAstToString(ast.nodes[i], `${tab}  `)}`
     }
   } else if (ast.type === 'WORD') {
-    str += `${tab + ast.id}:` + `[${ast.token.value}]`
+    str += `${tab + ast.id}:[${ast.token.value}]`
   }
   return str
 }

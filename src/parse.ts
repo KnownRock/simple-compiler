@@ -1,18 +1,11 @@
-type token = {
-  type: string,
-  value: string,
-  line: number,
-  column: number
-}
-
-function parse(mainExpression, ll1Grammars, tokens: token[]) {
+function parse(mainExpression:string, ll1Grammars:Ll1Grammar[], tokens: Token[]) {
   // initialize grammar table
   const grammarTable: {
     [key: string]: Array<string>
   } = {}
 
   const handlerTable: {
-    [key: string]: Function
+    [key: string]: AstNodeHandler | undefined
   } = {}
 
   ll1Grammars.forEach((grammar) => {
@@ -21,7 +14,7 @@ function parse(mainExpression, ll1Grammars, tokens: token[]) {
     handlerTable[key] = handler
   })
 
-  function getNode(nodeType, wordType) {
+  function getNode(nodeType:string, wordType:string):AstNode | null {
     if (!grammarTable[`${wordType}:${nodeType}`]) {
       return null
     }
@@ -35,7 +28,10 @@ function parse(mainExpression, ll1Grammars, tokens: token[]) {
     }
   }
 
-  function addToken(tree, token) {
+  function addToken(tree:AstNode, token:Token):boolean {
+    // for typescript lint
+    if (tree.type !== 'NODE') return true
+
     // if ast is full return
     if (tree.nptr === tree.need.length) return false
 
@@ -49,21 +45,23 @@ function parse(mainExpression, ll1Grammars, tokens: token[]) {
         token,
       })
       // increment the pointer
+      // eslint-disable-next-line no-param-reassign
       tree.nptr++
 
       // if the word dont have the same type, get the node from the grammar
     } else {
       // get the child node
-      let child = tree.nodes[tree.nptr]
+      let child:AstNode|null = tree.nodes[tree.nptr]
       // if the child node is not exist, create it from the grammar
       if (child == null) {
         child = getNode(tree.need[tree.nptr], token.type)
         if (child == null) {
-          throw {
-            type: 'parse error',
-            // pos: token.pos,
-            token,
-          }
+          throw new Error(`Unexpected token: ${token.type}`)
+          // {
+          //   type: 'parse error',
+          //   // pos: token.pos,
+          //   token,
+          // }
         }
         tree.nodes.push(child)
       }
@@ -71,6 +69,7 @@ function parse(mainExpression, ll1Grammars, tokens: token[]) {
       // add word to the child node, if the child node is full, add to next node
       if (!addToken(child, token)) {
         // increment the pointer
+        // eslint-disable-next-line no-param-reassign
         tree.nptr++
         // add word to the self
         return addToken(tree, token)
@@ -80,7 +79,7 @@ function parse(mainExpression, ll1Grammars, tokens: token[]) {
   }
 
   function resolveExpress() {
-    const express = {
+    const express:AstExpNode = {
       type: 'NODE',
       need: [mainExpression],
       id: 'root',
@@ -90,10 +89,11 @@ function parse(mainExpression, ll1Grammars, tokens: token[]) {
 
     for (let i = 0; i < tokens.length; i++) {
       if (!addToken(express, tokens[i])) {
-        throw {
-          type: '',
-          word: tokens[i],
-        }
+        throw new Error(`Unexpected token: ${tokens[i].type}`)
+        // throw {
+        //   type: '',
+        //   word: tokens[i],
+        // }
       }
     }
     return express
