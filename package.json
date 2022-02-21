@@ -2,7 +2,7 @@
   "name": "simple-complier",
   "version": "1.0.0",
   "description": "",
-  "dependencies": {},
+  "type":"module",
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.12.0",
     "@typescript-eslint/parser": "^5.12.0",
@@ -13,10 +13,11 @@
     "eslint-plugin-jsx-a11y": "^6.5.1",
     "eslint-plugin-react": "^7.28.0",
     "eslint-plugin-react-hooks": "^4.3.0",
+    "ts-node-dev": "^1.1.8",
     "typescript": "^4.5.5"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "npx ts-node-dev --clear --respawn  --transpile-only ./src/main.ts"
   },
   "repository": {
     "type": "git",
