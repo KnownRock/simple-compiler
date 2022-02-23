@@ -1,4 +1,4 @@
-function parse(mainExpression:string, ll1Grammars:Ll1Grammar[], tokens: Token[]) {
+function parse(mainExpression: string, ll1Grammars: Ll1Grammar[], tokens: Token[]) {
   // initialize grammar table
   const grammarTable: {
     [key: string]: Array<string>
@@ -14,7 +14,7 @@ function parse(mainExpression:string, ll1Grammars:Ll1Grammar[], tokens: Token[])
     handlerTable[key] = handler
   })
 
-  function getNode(nodeType:string, wordType:string):AstNode | null {
+  function getNode(nodeType: string, wordType: string): AstNode | null {
     if (!grammarTable[`${wordType}:${nodeType}`]) {
       return null
     }
@@ -28,7 +28,7 @@ function parse(mainExpression:string, ll1Grammars:Ll1Grammar[], tokens: Token[])
     }
   }
 
-  function addToken(tree:AstNode, token:Token):boolean {
+  function addToken(tree: AstNode, token: Token): boolean {
     // for typescript lint
     if (tree.type !== 'NODE') return true
 
@@ -51,7 +51,7 @@ function parse(mainExpression:string, ll1Grammars:Ll1Grammar[], tokens: Token[])
       // if the word dont have the same type, get the node from the grammar
     } else {
       // get the child node
-      let child:AstNode|null = tree.nodes[tree.nptr]
+      let child: AstNode | null = tree.nodes[tree.nptr]
       // if the child node is not exist, create it from the grammar
       if (child == null) {
         child = getNode(tree.need[tree.nptr], token.type)
@@ -79,7 +79,7 @@ function parse(mainExpression:string, ll1Grammars:Ll1Grammar[], tokens: Token[])
   }
 
   function resolveExpress() {
-    const express:AstExpNode = {
+    const express: AstExpNode = {
       type: 'NODE',
       need: [mainExpression],
       id: 'root',

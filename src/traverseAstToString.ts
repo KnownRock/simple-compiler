@@ -1,4 +1,4 @@
-function traverseAstToString(ast:AstNode, tab = '') {
+function traverseAstToString(ast: AstNode, tab = '') {
   let str = ''
   if (ast.type === 'NODE') {
     // console.log(tab + ast.id)

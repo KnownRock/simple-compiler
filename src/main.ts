@@ -23,7 +23,7 @@ const expDecTokenTypes: TokenType[] = [
 // EX ((operator1|operator2) EX)*
 // ((operator1|operator2|operator2) EX)*
 
-const tokens = tokenize(expDecTokenTypes, 'a a')
+const tokens = tokenize(expDecTokenTypes, 'a+ a* a? (a a)')
 console.log(tokens)
 
 const grammers: Grammar[] = [
@@ -49,7 +49,6 @@ const grammers: Grammar[] = [
   // A B
   ['EXC', ''],
   ['EXC', 'sp EX'],
-
 ].map((grammar) => {
   const [name, productions] = grammar
   if (productions === '') return [name, []]
@@ -71,7 +70,7 @@ function traverse(ast: AstNode): AstNode {
   if (ast.type === 'NODE') {
     if (ast.handler) return ast.handler(ast, traverse)
 
-    const nodes:AstNode[] = []
+    const nodes: AstNode[] = []
 
     ast.nodes.forEach((node) => {
       if (node.type === 'NODE') {
@@ -81,10 +80,10 @@ function traverse(ast: AstNode): AstNode {
       }
     })
 
-    return ({
+    return {
       ...ast,
       nodes,
-    })
+    }
   }
   return ast
 }

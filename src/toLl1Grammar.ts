@@ -1,4 +1,4 @@
-export default function toLl1Grammar(preGrammer:Grammar[], isLog = false) {
+export default function toLl1Grammar(preGrammer: Grammar[], isLog = false) {
   const ll1Grammars: Ll1Grammar[] = []
 
   // which grammar can be emtpy
@@ -14,10 +14,10 @@ export default function toLl1Grammar(preGrammer:Grammar[], isLog = false) {
   if (isLog) console.log(nullableDict)
 
   const firstDict: {
-    [key: string]: Set<string>;
+    [key: string]: Set<string>
   } = {}
   const isExpDict: {
-    [key: string]: boolean;
+    [key: string]: boolean
   } = {}
 
   preGrammer.forEach((item) => {
@@ -44,8 +44,13 @@ export default function toLl1Grammar(preGrammer:Grammar[], isLog = false) {
   })
 
   // replace all exp to extract token
-  function fillFirstDict(key:string, keysDict:{ [key: string]: boolean } = {}) {
-    if (keysDict[key]) { return }
+  function fillFirstDict(
+    key: string,
+    keysDict: { [key: string]: boolean } = {},
+  ) {
+    if (keysDict[key]) {
+      return
+    }
     if (firstDict[key]) {
       firstDict[key].forEach((el) => {
         fillFirstDict(el, {
@@ -83,13 +88,15 @@ export default function toLl1Grammar(preGrammer:Grammar[], isLog = false) {
     }
   })
 
-  if (isLog) { console.log(ll1Grammars) }
+  if (isLog) {
+    console.log(ll1Grammars)
+  }
 
   const followDict: {
-    [key: string]: Set<string>;
+    [key: string]: Set<string>
   } = {}
   const fathersDict: {
-    [key: string]: Set<string>;
+    [key: string]: Set<string>
   } = {}
   preGrammer.forEach((item) => {
     const [key, value] = item
@@ -114,12 +121,21 @@ export default function toLl1Grammar(preGrammer:Grammar[], isLog = false) {
     }
   })
 
-  if (isLog) { console.log(followDict) }
-  if (isLog) { console.log(fathersDict) }
+  if (isLog) {
+    console.log(followDict)
+  }
+  if (isLog) {
+    console.log(fathersDict)
+  }
 
   // // fill lastDict by followDict
-  function fillFollowDict(key:string, travedDict:{ [key: string]: boolean } = {}) {
-    if (travedDict[key] || !isExpDict[key]) { return }
+  function fillFollowDict(
+    key: string,
+    travedDict: { [key: string]: boolean } = {},
+  ) {
+    if (travedDict[key] || !isExpDict[key]) {
+      return
+    }
     if (followDict[key]) {
       followDict[key].forEach((el) => {
         if (isExpDict[el]) {
@@ -154,7 +170,9 @@ export default function toLl1Grammar(preGrammer:Grammar[], isLog = false) {
   Object.keys(followDict).forEach((key) => {
     fillFollowDict(key)
   })
-  if (isLog) { console.log(followDict) }
+  if (isLog) {
+    console.log(followDict)
+  }
 
   Object.keys(nullableDict).forEach((key) => {
     const follow = followDict[key]

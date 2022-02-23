@@ -5,7 +5,7 @@ type Token = {
   column: number
 }
 
-type AstNodeHandler = (node: AstNode, getNode: (ast: AstNode) => AstNode) => AstNode
+type AstNodeHandler = (node: AstExpNode, getNode: (ast: AstNode) => AstNode) => AstNode
 
 type AstExpNode = {
   type: 'NODE',

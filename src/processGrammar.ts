@@ -1,5 +1,5 @@
 // convert grammar to ll1able grammar
-export default function processGrammar(grammars:Grammar[]) {
+export default function processGrammar(grammars: Grammar[]) {
   const expNameDict: {
     [key: string]: string;
   } = {}
@@ -8,9 +8,9 @@ export default function processGrammar(grammars:Grammar[]) {
     expNameDict[key] = key
   })
 
-  function getUniqueExpName(expName:string) {
+  function getUniqueExpName(expName: string) {
     let index = 0
-    let uniqueExpName:string = expName
+    let uniqueExpName: string = expName
     while (expNameDict[uniqueExpName]) {
       uniqueExpName = `${expName}_${index}`
       index++
@@ -20,7 +20,7 @@ export default function processGrammar(grammars:Grammar[]) {
   }
 
   // handle grammars which have the same tail
-  const procssedGrammars:Grammar[] = []
+  const procssedGrammars: Grammar[] = []
   grammars.forEach((grammer) => {
     let flag = false
     procssedGrammars.forEach((procssedGrammar, index) => {
@@ -46,20 +46,16 @@ export default function processGrammar(grammars:Grammar[]) {
           procssedGrammars[index][1] = valueFirstPart.concat(grammarExtExpName)
           const handler = procssedGrammar[2]
 
-          procssedGrammars[index][2] = (astNode:AstNode, getNode):AstNode => {
-            // this node is a AstExpNode
-            const node = astNode as AstExpNode
-
+          procssedGrammars[index][2] = (node: AstExpNode, getNode): AstNode => {
             const p = ptr
             // the new exp generated is a AstExpNode
             const nodes2 = (getNode(node.nodes[p]) as AstExpNode).nodes
 
             const n = {
               ...node,
+              handler,
               nodes: node.nodes.slice(0, p).concat(nodes2),
             }
-
-            if (handler) return handler(n, getNode)
 
             return n
           }
